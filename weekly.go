@@ -1,6 +1,7 @@
 package casoncelli
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -150,6 +151,38 @@ func (p WeeklyPeriod) PreviousEnd() (*time.Time, error) {
 type DayTimeEdge struct {
 	Day  time.Weekday `json:"day"`
 	Hour string       `json:"hour"`
+}
+
+func (d *DayTimeEdge) UnmarshalJSON(data []byte) error {
+	aux := struct {
+		Day  string `json:"day"`
+		Hour string `json:"hour"`
+	}{}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	switch strings.ToLower(aux.Day) {
+	case "sunday":
+		d.Day = time.Sunday
+	case "monday":
+		d.Day = time.Monday
+	case "tuesday":
+		d.Day = time.Tuesday
+	case "wednesday":
+		d.Day = time.Wednesday
+	case "thursday":
+		d.Day = time.Thursday
+	case "friday":
+		d.Day = time.Friday
+	case "saturday":
+		d.Day = time.Saturday
+	default:
+		return fmt.Errorf("invalid weekday: %s", aux.Day)
+	}
+	d.Hour = aux.Hour
+	return nil
 }
 
 // Before reports whether the edge is before the time instant t.

@@ -1,6 +1,7 @@
 package casoncelli
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -67,6 +68,23 @@ func (p OncePeriod) PreviousEnd() (*time.Time, error) {
 
 type TimestampEdge struct {
 	Timestamp time.Time `json:"timestamp"`
+}
+
+func (t *TimestampEdge) UnmarshalJSON(data []byte) error {
+	aux := struct {
+		Timestamp string `json:"timestamp"`
+	}{}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	ts, err := time.ParseInLocation("2006-01-02 15:04:05", aux.Timestamp, time.Local)
+
+	if err != nil {
+		return err
+	}
+	t.Timestamp = ts
+	return nil
 }
 
 func (e TimestampEdge) Before(t time.Time) bool {
