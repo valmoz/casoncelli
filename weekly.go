@@ -247,7 +247,7 @@ func (e DayTimeEdge) GetEdgeTimestamp(t time.Time) (time.Time, error) {
 		return time.Time{}, err
 	}
 
-	min, _ := strconv.Atoi(tokens[1])
+	min, err := strconv.Atoi(tokens[1])
 	if err != nil {
 		return time.Time{}, err
 	}
