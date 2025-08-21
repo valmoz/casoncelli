@@ -16,7 +16,7 @@ func (c *Casoncelli) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	var periods []Period
+	periods := []Period{}
 	for _, raw := range rawMessages {
 		var peek struct {
 			Type string `json:"type"`
