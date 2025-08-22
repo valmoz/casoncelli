@@ -8,10 +8,13 @@ Its main objective is to manage automatically scheduled maintenance periods, whe
 
 ## Functionalities
 
-Casoncelli can currently manage two different types of periods:
+Casoncelli can currently manage five different types of periods:
 
 - **Weekly Periods**: Periods that repeat themselves every 7 days
-- **Once Periods**: These are single events that happen only once and never again
+- **Daily Periods**: Periods that repeat themselves every 24 hours
+- **Once Periods**: Single events that happen only once and never again
+- **Always Periods**: Periods that are perpetually active
+- **Never Periods**: Periods that are never active
 
 Each period is defined by its **Edges**, which declare when a period starts or finishes.
 
@@ -41,6 +44,44 @@ A Weekly Period is defined by day/hour edges, for example:
 
 In this case, the period starts every Saturday at 23:00 and ends the next Sunday at 07:00 local time.
 
+### Daily Periods
+
+A Daily Period is defined by hour edges and repeats every day, for example:
+
+```json
+{
+  "name": "business hours",
+  "description": "office working hours",
+  "type": "daily",
+  "from": {
+    "hour": "09:00"
+  },
+  "to": {
+    "hour": "17:30"
+  }
+}
+```
+
+In this case, the period is active every day from 09:00 to 17:30 local time.
+
+Daily periods can also cross midnight:
+
+```json
+{
+  "name": "night shift",
+  "description": "overnight maintenance window",
+  "type": "daily",
+  "from": {
+    "hour": "22:00"
+  },
+  "to": {
+    "hour": "06:00"
+  }
+}
+```
+
+This period is active every day from 22:00 to 06:00 the next day.
+
 ### Once Periods
 
 A Once period is defined by timestamp edges, for example:
@@ -60,6 +101,34 @@ A Once period is defined by timestamp edges, for example:
 ```
 
 In this case, the period starts at 12:30 on 20 February 2025 and ends at 14:30 on the same day.
+
+### Always Periods
+
+An Always Period is perpetually active and has no defined start or end:
+
+```json
+{
+  "name": "maintenance mode",
+  "description": "system permanently under maintenance",
+  "type": "always"
+}
+```
+
+This period will always return true for any timestamp check. It's useful for permanently enabling/disabling features when needed.
+
+### Never Periods
+
+A Never Period is never active:
+
+```json
+{
+  "name": "disabled feature",
+  "description": "feature permanently disabled",
+  "type": "never"
+}
+```
+
+This period will always return false for any timestamp check. It's useful for representing enabled/disabled features or as placeholders in configurations.
 
 ## Installation
 
@@ -87,7 +156,7 @@ func main() {
     jsonConfig := `{
         "periods":[
             {
-                "name":"scheduled maintainance",
+                "name":"scheduled maintenance",
                 "description":"update indexes",
                 "type":"weekly",
                 "from":{
@@ -100,6 +169,17 @@ func main() {
                 }
             },
             {
+                "name":"business hours",
+                "description":"daily working hours",
+                "type":"daily",
+                "from":{
+                    "hour":"09:00"
+                },
+                "to":{
+                    "hour":"17:30"
+                }
+            },
+            {
                 "name":"service interruption",
                 "description":"as defined in mail 18/02/2025",
                 "type":"once",
@@ -109,18 +189,23 @@ func main() {
                 "to":{
                     "timestamp":"2025-02-20 14:30:00"
                 }
+            },
+            {
+                "name":"emergency maintenance",
+                "description":"system under emergency maintenance",
+                "type":"always"
             }
         ]
     }`
 
-    var casoncelli casoncelli.Casoncelli
-    err := casoncelli.UnmarshalJSON([]byte(jsonConfig), &casoncelli)
+    var dish casoncelli.Casoncelli
+    err := json.Unmarshal([]byte(jsonConfig), &casoncelli)
     if err != nil {
         panic(err)
     }
 
     // Checking if the system is currently offline
-    if casoncelli.ContainsNow() {
+    if dish.ContainsNow() {
         fmt.Println("The service is currently offline")
     } else {
         fmt.Println("The service is currently online")
@@ -128,7 +213,7 @@ func main() {
 
     // Checking a specific time
     specificTime := time.Date(2025, 2, 20, 13, 0, 0, 0, time.Local)
-    if casoncelli.Contains(specificTime) {
+    if dish.Contains(specificTime) {
         fmt.Println("The specified time is contained in the period")
     }
 }
@@ -152,6 +237,8 @@ func main() {
 - `PreviousStart() (*time.Time, error)`: Returns the start of the previous period
 - `PreviousEnd() (*time.Time, error)`: Returns the end of the previous period
 
+**Note**: For `Always` and `Never` periods, the temporal methods (`CurrentStart`, `CurrentEnd`, `NextStart`, `NextEnd`, `PreviousStart`, `PreviousEnd`) will return an error since these periods don't have defined start or end times.
+
 ## Test
 
 The tests can be executed with:
@@ -164,3 +251,7 @@ go test ./...
 
 This library is distributed under the MIT license found in the [LICENSE](./LICENSE)
 file.
+
+## Related Projects
+
+I developed a similar project using PHP: [Scarpinocc](https://github.com/valmoz/scarpinocc)
