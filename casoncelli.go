@@ -8,16 +8,22 @@ import (
 
 type Casoncelli struct {
 	Periods []Period `json:"periods"`
+	//Timezone *time.Location `json:"timezone,omitempty"`
 }
 
 func (c *Casoncelli) UnmarshalJSON(data []byte) error {
-	var rawMessages []json.RawMessage
-	if err := json.Unmarshal(data, &rawMessages); err != nil {
+	type rawCasoncelli struct {
+		Periods []json.RawMessage `json:"periods"`
+		//Timezone *string           `json:"timezone,omitempty"`
+	}
+
+	var rawObj rawCasoncelli
+	if err := json.Unmarshal(data, &rawObj); err != nil {
 		return err
 	}
 
 	periods := []Period{}
-	for _, raw := range rawMessages {
+	for _, raw := range rawObj.Periods {
 		var peek struct {
 			Type string `json:"type"`
 		}

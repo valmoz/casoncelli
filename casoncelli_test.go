@@ -9,32 +9,34 @@ import (
 )
 
 func TestUnmarshal(t *testing.T) {
-	exampleJson := `[
-   {
-      "name":"scheduled maintainance",
-      "description":"update indexes",
-      "type":"weekly",
-      "from":{
-         "day":"saturday",
-         "hour":"23:00"
+	exampleJson := `{
+   "periods":[
+      {
+         "name":"scheduled maintainance",
+         "description":"update indexes",
+         "type":"weekly",
+         "from":{
+            "day":"saturday",
+            "hour":"23:00"
+         },
+         "to":{
+            "day":"sunday",
+            "hour":"07:00"
+         }
       },
-      "to":{
-         "day":"sunday",
-         "hour":"07:00"
+      {
+         "name":"service interruption",
+         "description":"as defined in mail 18/02/2025",
+         "type":"once",
+         "from":{
+            "timestamp":"2025-02-20 12:30:00"
+         },
+         "to":{
+            "timestamp":"2025-02-20 14:30:00"
+         }
       }
-   },
-   {
-      "name":"service interruption",
-      "description":"as defined in mail 18/02/2025",
-      "type":"once",
-      "from":{
-         "timestamp":"2025-02-20 12:30:00"
-      },
-      "to":{
-         "timestamp":"2025-02-20 14:30:00"
-      }
-   }
-]`
+   ]
+}`
 	var casoncelli Casoncelli
 	err := json.Unmarshal([]byte(exampleJson), &casoncelli)
 	assert.NoError(t, err, "Expected no error during unmarshalling")

@@ -84,32 +84,34 @@ import (
 
 func main() {
     // Period definition
-    jsonConfig := `[
-        {
-            "name": "scheduled maintenance",
-            "description": "update indexes",
-            "type": "weekly",
-            "from": {
-                "day": "saturday",
-                "hour": "23:00"
+    jsonConfig := `{
+        "periods":[
+            {
+                "name":"scheduled maintainance",
+                "description":"update indexes",
+                "type":"weekly",
+                "from":{
+                    "day":"saturday",
+                    "hour":"23:00"
+                },
+                "to":{
+                    "day":"sunday",
+                    "hour":"07:00"
+                }
             },
-            "to": {
-                "day": "sunday",
-                "hour": "07:00"
+            {
+                "name":"service interruption",
+                "description":"as defined in mail 18/02/2025",
+                "type":"once",
+                "from":{
+                    "timestamp":"2025-02-20 12:30:00"
+                },
+                "to":{
+                    "timestamp":"2025-02-20 14:30:00"
+                }
             }
-        },
-        {
-            "name": "service interruption",
-            "description": "as defined in mail 18/02/2025",
-            "type": "once",
-            "from": {
-                "timestamp": "2025-02-20 12:30:00"
-            },
-            "to": {
-                "timestamp": "2025-02-20 14:30:00"
-            }
-        }
-    ]`
+        ]
+    }`
 
     var casoncelli casoncelli.Casoncelli
     err := casoncelli.UnmarshalJSON([]byte(jsonConfig), &casoncelli)
@@ -125,7 +127,7 @@ func main() {
     }
 
     // Checking a specific time
-    specificTime := time.Date(2025, 2, 20, 13, 0, 0, 0, time.UTC)
+    specificTime := time.Date(2025, 2, 20, 13, 0, 0, 0, time.Local)
     if casoncelli.Contains(specificTime) {
         fmt.Println("The specified time is contained in the period")
     }
