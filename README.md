@@ -194,6 +194,11 @@ func main() {
                 "name":"emergency maintenance",
                 "description":"system under emergency maintenance",
                 "type":"always"
+            },
+            {
+                "name":"placeholder",
+                "description":"placeholder",
+                "type":"never"
             }
         ]
     }`
