@@ -268,7 +268,7 @@ func TestTimestampEdgeBeforeOrEqual(t *testing.T) {
 	future, _ := time.Parse(layout, "2025-04-29 12:00")
 
 	assert.False(t, edge.BeforeOrEqual(past), "Expected edge to not be before or equal the past timestamp")
-	assert.True(t, edge.BeforeOrEqual(ts), "Expected edge to not be before or equal the same timestamp")
+	assert.True(t, edge.BeforeOrEqual(ts), "Expected edge to be before or equal the same timestamp")
 	assert.True(t, edge.BeforeOrEqual(future), "Expected edge to be before or equal the future timestamp")
 }
 

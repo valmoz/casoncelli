@@ -1131,7 +1131,7 @@ func TestDayTimeEdgeBeforeOrEqual(t *testing.T) {
 		Hour: nowHour,
 	}
 	correctedNow := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), 0, 0, now.Location())
-	assert.True(t, edge.BeforeOrEqual(correctedNow), "Expected edge to be before now")
+	assert.True(t, edge.BeforeOrEqual(correctedNow), "Expected edge to be before or equal now")
 }
 
 func TestDayTimeEdgeAfterOrEqual(t *testing.T) {
@@ -1184,5 +1184,5 @@ func TestDayTimeEdgeAfterOrEqual(t *testing.T) {
 		Hour: nowHour,
 	}
 	correctedNow := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), 0, 0, now.Location())
-	assert.True(t, edge.AfterOrEqual(correctedNow), "Expected edge to not be after or equal now")
+	assert.True(t, edge.AfterOrEqual(correctedNow), "Expected edge to be after or equal now")
 }
