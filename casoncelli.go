@@ -14,7 +14,6 @@ type Casoncelli struct {
 func (c *Casoncelli) UnmarshalJSON(data []byte) error {
 	type rawCasoncelli struct {
 		Periods []json.RawMessage `json:"periods"`
-		//Timezone *string           `json:"timezone,omitempty"`
 	}
 
 	var rawObj rawCasoncelli
@@ -22,31 +21,35 @@ func (c *Casoncelli) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	periodTypes := map[string]func(json.RawMessage) (Period, error){
+		"weekly": unmarshalPeriod[WeeklyPeriod],
+		"daily":  unmarshalPeriod[DailyPeriod],
+		"once":   unmarshalPeriod[OncePeriod],
+		"never":  unmarshalPeriod[NeverPeriod],
+		"always": unmarshalPeriod[AlwaysPeriod],
+	}
+
 	periods := []Period{}
 	for _, raw := range rawObj.Periods {
 		var peek struct {
 			Type string `json:"type"`
 		}
+
 		if err := json.Unmarshal(raw, &peek); err != nil {
 			return err
 		}
 
-		switch peek.Type {
-		case "weekly":
-			var wp WeeklyPeriod
-			if err := json.Unmarshal(raw, &wp); err != nil {
-				return err
-			}
-			periods = append(periods, wp)
-		case "once":
-			var op OncePeriod
-			if err := json.Unmarshal(raw, &op); err != nil {
-				return err
-			}
-			periods = append(periods, op)
-		default:
+		unmarshaler, exists := periodTypes[peek.Type]
+		if !exists {
 			return fmt.Errorf("unknown period type: %s", peek.Type)
 		}
+
+		period, err := unmarshaler(raw)
+		if err != nil {
+			return err
+		}
+
+		periods = append(periods, period)
 	}
 
 	c.Periods = periods
@@ -69,4 +72,12 @@ func (c *Casoncelli) ContainsNow() bool {
 		}
 	}
 	return false
+}
+
+func unmarshalPeriod[T Period](raw json.RawMessage) (Period, error) {
+	var period T
+	if err := json.Unmarshal(raw, &period); err != nil {
+		return nil, err
+	}
+	return period, nil
 }

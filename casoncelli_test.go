@@ -2,6 +2,7 @@ package casoncelli
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -24,6 +25,17 @@ func TestUnmarshal(t *testing.T) {
             "hour":"07:00"
          }
       },
+			{
+         "name":"cron time",
+         "description":"cleaning jobs",
+         "type":"daily",
+         "from":{
+            "hour":"02:00"
+         },
+         "to":{
+            "hour":"03:00"
+         }
+      },
       {
          "name":"service interruption",
          "description":"as defined in mail 18/02/2025",
@@ -34,13 +46,32 @@ func TestUnmarshal(t *testing.T) {
          "to":{
             "timestamp":"2025-02-20 14:30:00"
          }
+      },
+      {
+         "name":"never period",
+         "description":"empty period",
+         "type":"never"
+      },
+      {
+         "name":"always period",
+         "description":"full period",
+         "type":"always"
       }
    ]
 }`
-	var casoncelli Casoncelli
-	err := json.Unmarshal([]byte(exampleJson), &casoncelli)
+
+	type rawCasoncelli struct {
+		Periods []json.RawMessage `json:"periods"`
+	}
+
+	var arr rawCasoncelli
+	json.Unmarshal([]byte(exampleJson), &arr)
+	numPeriods := len(arr.Periods)
+
+	var dish Casoncelli
+	err := json.Unmarshal([]byte(exampleJson), &dish)
 	assert.NoError(t, err, "Expected no error during unmarshalling")
-	assert.Equal(t, 2, len(casoncelli.Periods), "Expected 2 periods to be unmarshalled")
+	assert.Equal(t, numPeriods, len(dish.Periods), "Expected correct number of periods to be unmarshalled")
 
 	exp := Casoncelli{
 		Periods: []Period{
@@ -51,10 +82,22 @@ func TestUnmarshal(t *testing.T) {
 				},
 				From: DayTimeEdge{
 					Day:  time.Saturday,
-					Hour: "23:00",
+					Hour: "02:00",
 				},
 				To: DayTimeEdge{
 					Day:  time.Sunday,
+					Hour: "03:00",
+				},
+			},
+			DailyPeriod{
+				PeriodLabel: PeriodLabel{
+					Name:        "cron time",
+					Description: "cleaning jobs",
+				},
+				From: TimeEdge{
+					Hour: "23:00",
+				},
+				To: TimeEdge{
 					Hour: "07:00",
 				},
 			},
@@ -70,10 +113,24 @@ func TestUnmarshal(t *testing.T) {
 					Timestamp: time.Date(2025, 2, 20, 14, 30, 0, 0, time.Now().Location()),
 				},
 			},
+			NeverPeriod{
+				PeriodLabel: PeriodLabel{
+					Name:        "never period",
+					Description: "empty period",
+				},
+			},
+			AlwaysPeriod{
+				PeriodLabel: PeriodLabel{
+					Name:        "always period",
+					Description: "full period",
+				},
+			},
 		},
 	}
-	assert.True(t, casoncelli.Periods[0] == exp.Periods[0], "Expected result to contain the weekly period")
-	assert.True(t, casoncelli.Periods[1] == exp.Periods[1], "Expected result to contain the once period")
+
+	for i := 0; i < numPeriods; i++ {
+		assert.True(t, dish.Periods[i] == exp.Periods[i], fmt.Sprintf("Expected result to contain the period at index %d", i))
+	}
 }
 
 type MockPeriod struct {
